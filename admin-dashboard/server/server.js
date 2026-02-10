@@ -11,7 +11,7 @@ const db = usePostgres
   : (await import('./config/database.js')).default;
 
 console.log(`🗄️  Using ${usePostgres ? 'PostgreSQL' : 'MySQL'} database`);
-
+const express = require('express');
 const app = express();
 
 // ============================================
@@ -150,13 +150,7 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log('=================================');
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🌐 API Base: http://localhost:${PORT}/api`);
-  console.log('=================================');
-});
+module.exports = app;
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
