@@ -1,9 +1,17 @@
 // server.js
 import express from 'express';
 import cors from 'cors';
-import mysql from 'mysql2';
 import dotenv from 'dotenv';
 dotenv.config();
+
+// Import database based on environment
+const usePostgres = process.env.DATABASE_URL ? true : false;
+const db = usePostgres 
+  ? (await import('./config/database-postgres.js')).default
+  : (await import('./config/database.js')).default;
+
+console.log(`🗄️  Using ${usePostgres ? 'PostgreSQL' : 'MySQL'} database`);
+
 const app = express();
 
 // ============================================
@@ -50,31 +58,25 @@ app.use((req, res, next) => {
 // DATABASE CONNECTION
 // ============================================
 
-const db = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'admin_dashboard',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-});
-
-// Convert pool to promise-based
-const dbPromise = db.promise();
+// Database is imported at the top based on DATABASE_URL environment variable
+// PostgreSQL if DATABASE_URL exists, MySQL otherwise
 
 // Test database connection
-db.getConnection((err, connection) => {
-  if (err) {
-    console.error('❌ Database connection failed:', err.message);
-    process.exit(1);
-  }
-  console.log('✅ Database connected successfully');
-  connection.release();
-});
+if (usePostgres) {
+  await db.testConnection();
+} else {
+  db.pool.getConnection((err, connection) => {
+    if (err) {
+      console.error('❌ Database connection failed:', err.message);
+      process.exit(1);
+    }
+    console.log('✅ Database connected successfully');
+    connection.release();
+  });
+}
 
 // Export db for use in controllers
-app.locals.db = dbPromise;
+app.locals.db = usePostgres ? db : db.promisePool;
 
 // ============================================
 // API ROUTES
@@ -159,10 +161,17 @@ app.listen(PORT, () => {
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM signal received: closing HTTP server');
-  db.end(() => {
-    console.log('Database connection closed');
-    process.exit(0);
-  });
+  if (usePostgres) {
+    db.closePool().then(() => {
+      console.log('Database connection closed');
+      process.exit(0);
+    });
+  } else {
+    db.pool.end(() => {
+      console.log('Database connection closed');
+      process.exit(0);
+    });
+  }
 });
 
 export default app;

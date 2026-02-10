@@ -7,61 +7,66 @@ Deploy your entire application for **$0/month** using free tiers.
 ## 🎯 What You'll Use (All FREE)
 
 1. **Vercel** - Frontend hosting (FREE forever)
-2. **Render** - Backend API (FREE with sleep)
-3. **Clever Cloud** - MySQL Database (FREE 256MB)
+2. **Render** - Backend API + PostgreSQL Database (FREE with sleep)
 
 **Total Cost: $0/month** 🎉
 
 ---
 
-## 📝 Step-by-Step (40 minutes)
+## 📝 Step-by-Step (35 minutes)
 
-### STEP 1: Free MySQL Database (10 minutes)
+### STEP 1: Free PostgreSQL Database on Render (8 minutes)
 
-We'll use **Clever Cloud** - they offer FREE MySQL with no credit card!
+Render offers **FREE PostgreSQL** (1GB storage) - no credit card needed!
 
-#### 1.1 Create Clever Cloud Account
+#### 1.1 Create Render Account
 
-1. Go to [clever-cloud.com](https://www.clever-cloud.com)
-2. Click **Sign Up** → **Sign up with GitHub**
-3. Authorize Clever Cloud
+1. Go to [render.com](https://render.com)
+2. Click **Get Started** → **Sign in with GitHub**
+3. Authorize Render
 
-#### 1.2 Create MySQL Database
+#### 1.2 Create PostgreSQL Database
 
-1. Click **Create...** → **an add-on**
-2. Select **MySQL**
-3. Choose **DEV** plan (FREE - 256MB storage)
-4. Name: `am-fashions-db`
-5. Click **Create**
+1. In Render Dashboard, click **New +** → **PostgreSQL**
+2. Configure:
+   ```
+   Name: am-fashions-db
+   Database: amfashions
+   User: amfashions
+   Region: Choose closest to you
+   PostgreSQL Version: 16 (latest)
+   Instance Type: Free
+   ```
+3. Click **Create Database**
+4. Wait 2-3 minutes for provisioning
 
 #### 1.3 Get Connection Details
 
-1. Click on your MySQL add-on
-2. Go to **Environment variables** tab
-3. Copy these values:
-   ```
-   MYSQL_ADDON_HOST
-   MYSQL_ADDON_USER
-   MYSQL_ADDON_PASSWORD
-   MYSQL_ADDON_DB
-   MYSQL_ADDON_PORT
-   ```
+1. Click on your database
+2. Scroll down to **Connections** section
+3. Copy **Internal Database URL** (starts with `postgres://`)
+4. Save this - you'll need it for backend!
 
-#### 1.4 Import Your Database
-
-**Option A: Using MySQL Workbench (Easiest)**
-
-1. Open MySQL Workbench
-2. Create new connection with Clever Cloud details
-3. File → Run SQL Script → Select `admin-dashboard/database/complete_setup.sql`
-4. Run `admin-dashboard/database/seed.sql`
-
-**Option B: Using Command Line**
-
-```bash
-mysql -h <MYSQL_ADDON_HOST> -u <MYSQL_ADDON_USER> -p<MYSQL_ADDON_PASSWORD> <MYSQL_ADDON_DB> < admin-dashboard/database/complete_setup.sql
-mysql -h <MYSQL_ADDON_HOST> -u <MYSQL_ADDON_USER> -p<MYSQL_ADDON_PASSWORD> <MYSQL_ADDON_DB> < admin-dashboard/database/seed.sql
+Example:
 ```
+postgres://amfashions:xxxxx@dpg-xxxxx-a.oregon-postgres.render.com/amfashions
+```
+
+#### 1.4 Import Your Database Schema
+
+1. In Render database dashboard, click **Connect** → **External Connection**
+2. Copy the **PSQL Command**
+3. On your computer, run:
+   ```bash
+   # Connect to database
+   psql postgres://your-connection-string-here
+   
+   # Then paste the contents of postgresql_setup.sql
+   # Or run directly:
+   psql postgres://your-connection-string-here < admin-dashboard/database/postgresql_setup.sql
+   ```
+
+**Don't have psql installed?** Use Render's **Shell** tab in the database dashboard to run SQL directly!
 
 ---
 
